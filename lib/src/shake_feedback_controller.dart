@@ -61,6 +61,10 @@ class ShakeFeedbackController {
 
   /// Starts listening for shakes.
   ///
+  /// **No-op in release builds.** The call returns immediately when
+  /// [kReleaseMode] is `true`, and the Dart AOT compiler tree-shakes the shake
+  /// detector and its dependency out of the production binary entirely.
+  ///
   /// Provide either [onSubmit] **or** [service] — if both are supplied,
   /// [onSubmit] takes precedence.
   ///
@@ -89,7 +93,7 @@ class ShakeFeedbackController {
       'Provide either onSubmit or service.',
     );
 
-    if (kIsWeb) return;
+    if (kIsWeb || kReleaseMode) return;
 
     _contextProvider = contextProvider;
     _onSubmit = onSubmit ??
