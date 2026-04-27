@@ -1,0 +1,25 @@
+name: shake_feedback
+description: >
+  A Flutter package that detects device shakes, captures a screenshot, shows a
+  feedback dialog, and submits the result via any backend — fully configurable
+  and localization-friendly. Includes a built-in GitHub Issues integration.
+version: 0.1.0
+homepage: https://github.com/Zapientia/shake_feedback
+repository: https://github.com/Zapientia/shake_feedback
+issue_tracker: https://github.com/Zapientia/shake_feedback/issues
+
+environment:
+  sdk: ^3.7.2
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.1
+  package_info_plus: ^9.0.0
+  shake: ^3.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
