@@ -8,8 +8,10 @@ import 'shake_feedback_strings.dart';
 /// A self-contained feedback dialog that shows a description field and an
 /// optional screenshot preview.
 ///
-/// All colours, typography, and shape come from the ambient [Theme] so the
-/// dialog automatically adapts to any app's design system.
+/// All colors, typography, shape, and button styles are resolved from the
+/// ambient [Theme], so every team can fully customise the dialog's appearance
+/// by providing their own [DialogTheme], [TextButtonThemeData],
+/// [FilledButtonThemeData], and [InputDecorationTheme] inside [ThemeData].
 ///
 /// Returns a [FeedbackSubmission] when the user taps submit, or `null` when
 /// they dismiss / cancel.
@@ -32,10 +34,11 @@ class FeedbackDialog extends StatefulWidget {
     return showDialog<FeedbackSubmission>(
       context: context,
       barrierDismissible: true,
-      builder: (_) => FeedbackDialog(
-        screenshotBytes: screenshotBytes,
-        strings: strings,
-      ),
+      builder:
+          (_) => FeedbackDialog(
+            screenshotBytes: screenshotBytes,
+            strings: strings,
+          ),
     );
   }
 
@@ -44,6 +47,13 @@ class FeedbackDialog extends StatefulWidget {
 }
 
 class _FeedbackDialogState extends State<FeedbackDialog> {
+  static const double _screenshotPreviewHeight = 140;
+  static const int _descriptionMinLines = 4;
+  static const int _descriptionMaxLines = 6;
+  static const double _spacingMedium = 12;
+  static const double _spacingSmall = 8;
+  static const double _fallbackBorderRadius = 8;
+
   late final TextEditingController _controller;
 
   @override
@@ -62,12 +72,7 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return AlertDialog(
-      backgroundColor: theme.colorScheme.surface,
-      titleTextStyle: theme.textTheme.titleMedium?.copyWith(
-        color: theme.colorScheme.onSurface,
-      ),
       title: Text(widget.strings.dialogTitle),
       content: _buildContent(context),
       actions: _buildActions(context),
@@ -75,44 +80,30 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
   }
 
   Widget _buildContent(BuildContext context) {
-    final theme = Theme.of(context);
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            widget.strings.descriptionLabel,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 12),
+          Text(widget.strings.descriptionLabel),
+          const SizedBox(height: _spacingMedium),
           TextFormField(
             controller: _controller,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
             decoration: InputDecoration(
               hintText: widget.strings.descriptionHint,
-              hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.hintColor,
-              ),
             ),
-            maxLines: 6,
-            minLines: 4,
+            maxLines: _descriptionMaxLines,
+            minLines: _descriptionMinLines,
             textInputAction: TextInputAction.newline,
             onChanged: (_) => setState(() {}),
           ),
           if (widget.screenshotBytes != null) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: _spacingMedium),
             Text(
               widget.strings.screenshotPreviewLabel,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: _spacingSmall),
             _buildScreenshotPreview(context),
           ],
         ],
@@ -122,33 +113,34 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
 
   Widget _buildScreenshotPreview(BuildContext context) {
     final shape = Theme.of(context).cardTheme.shape;
-    final radius = shape is RoundedRectangleBorder
-        ? shape.borderRadius as BorderRadius
-        : BorderRadius.circular(8);
+    final BorderRadius radius;
+    if (shape is RoundedRectangleBorder && shape.borderRadius is BorderRadius) {
+      radius = shape.borderRadius as BorderRadius;
+    } else {
+      radius = BorderRadius.circular(_fallbackBorderRadius);
+    }
     return ClipRRect(
       borderRadius: radius,
-      child: Image.memory(widget.screenshotBytes!, height: 140),
+      child: Image.memory(
+        widget.screenshotBytes!,
+        height: _screenshotPreviewHeight,
+      ),
     );
   }
 
   List<Widget> _buildActions(BuildContext context) {
-    final theme = Theme.of(context);
     return [
       TextButton(
         onPressed: () => Navigator.of(context).pop(),
-        style: TextButton.styleFrom(
-          foregroundColor: theme.colorScheme.onSurfaceVariant,
-        ),
         child: Text(widget.strings.cancelButton),
       ),
       FilledButton(
-        onPressed: _canSubmit
-            ? () => Navigator.of(context).pop(
-                  FeedbackSubmission(
-                    description: _controller.text.trim(),
-                  ),
-                )
-            : null,
+        onPressed:
+            _canSubmit
+                ? () => Navigator.of(
+                  context,
+                ).pop(FeedbackSubmission(description: _controller.text.trim()))
+                : null,
         child: Text(widget.strings.submitButton),
       ),
     ];
