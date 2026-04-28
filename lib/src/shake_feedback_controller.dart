@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -17,10 +16,11 @@ import 'shake_feedback_strings.dart';
 ///
 /// Receives the user's [submission] and, if available, the PNG [screenshotBytes].
 /// Throw any exception to trigger the error snack-bar.
-typedef OnFeedbackSubmit = Future<void> Function(
-  FeedbackSubmission submission,
-  Uint8List? screenshotBytes,
-);
+typedef OnFeedbackSubmit =
+    Future<void> Function(
+      FeedbackSubmission submission,
+      Uint8List? screenshotBytes,
+    );
 
 /// Controls shake-to-report behaviour for a Flutter application.
 ///
@@ -61,9 +61,11 @@ class ShakeFeedbackController {
 
   /// Starts listening for shakes.
   ///
-  /// **No-op in release builds.** The call returns immediately when
-  /// [kReleaseMode] is `true`, and the Dart AOT compiler tree-shakes the shake
-  /// detector and its dependency out of the production binary entirely.
+  /// **No-op on web** (`kIsWeb == true`). On all other platforms — including
+  /// release builds — the detector starts as long as this method is called.
+  /// Gate the call yourself using a `--dart-define` flag so that TestFlight,
+  /// Google Play internal testing, and other pre-production release builds
+  /// still receive shake feedback while production builds do not.
   ///
   /// Provide either [onSubmit] **or** [service] — if both are supplied,
   /// [onSubmit] takes precedence.
@@ -93,10 +95,11 @@ class ShakeFeedbackController {
       'Provide either onSubmit or service.',
     );
 
-    if (kIsWeb || kReleaseMode) return;
+    if (kIsWeb) return;
 
     _contextProvider = contextProvider;
-    _onSubmit = onSubmit ??
+    _onSubmit =
+        onSubmit ??
         (submission, screenshot) => service!.submit(submission, screenshot);
     _strings = strings;
 
@@ -155,13 +158,15 @@ class ShakeFeedbackController {
         await _onSubmit(submission, screenshot);
 
         if (context.mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(_strings.successMessage)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(_strings.successMessage)));
         }
       } catch (_) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(_strings.errorMessage)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(_strings.errorMessage)));
         }
       }
     }

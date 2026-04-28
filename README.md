@@ -13,7 +13,7 @@ A Flutter package that detects device shakes, captures a screenshot, shows a fee
 - `FeedbackService` abstract class — implement once to send feedback anywhere (Jira, Linear, Slack, your own API…)
 - Built-in `GitHubFeedbackService` — creates a GitHub issue with device info and an uploaded screenshot
 - Web-safe: shake detection is silently skipped on non-mobile platforms
-- Production-safe: completely inactive in release builds — the shake detector and its dependency are tree-shaken out of the production binary by the AOT compiler
+- Beta-friendly: works in TestFlight and Google Play internal testing builds since you control when to enable it
 
 ---
 
@@ -49,27 +49,39 @@ flutter pub get
 > Never hard-code the token in source code or commit it to version control.  
 > Pass it at build time using `--dart-define` or a secrets manager.
 
-### Step 2 — Pass the token at build time
+### Step 2 — Pass both defines at build time
+
+The token and the enabled flag travel together:
 
 ```sh
-flutter run --dart-define=GITHUB_FEEDBACK_TOKEN=ghp_xxxxxxxxxxxx
+# Debug / local
+flutter run \
+  --dart-define=SHAKE_FEEDBACK_ENABLED=true \
+  --dart-define=GITHUB_FEEDBACK_TOKEN=ghp_xxxxxxxxxxxx
+
+# TestFlight / Google Play internal testing (release archive, feature still on)
+flutter build ipa \
+  --dart-define=SHAKE_FEEDBACK_ENABLED=true \
+  --dart-define=GITHUB_FEEDBACK_TOKEN=$GITHUB_FEEDBACK_TOKEN
+
+# Production (feature off — token can be omitted entirely)
+flutter build ipa
 ```
 
-For CI/CD, store the token as a secret and inject it the same way:
-
-```sh
-flutter build apk --dart-define=GITHUB_FEEDBACK_TOKEN=${{ secrets.GITHUB_FEEDBACK_TOKEN }}
-```
+For CI/CD, store both as secrets and inject them the same way.
 
 ### Step 3 — Wire up the package
 
-> **Note:** `ShakeFeedbackController.init` is a no-op in release builds (`kReleaseMode == true`). The Dart AOT compiler eliminates the shake detector and its dependency from the production binary entirely — no overhead, no risk of accidental triggers in production.
+> **Note:** `ShakeFeedbackController.init` is a no-op on web but **active on all other platforms, including release builds**. This is intentional — TestFlight and Google Play internal testing use release archives and still need shake feedback. Gate the call with your own flag so production builds stay clean.
 
 **`main.dart`**
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:shake_feedback/shake_feedback.dart';
+
+const _shakeFeedbackEnabled =
+    bool.fromEnvironment('SHAKE_FEEDBACK_ENABLED', defaultValue: false);
 
 final _navigatorKey = GlobalKey<NavigatorState>();
 
@@ -81,16 +93,18 @@ void main() {
     ),
   );
 
-  ShakeFeedbackController.init(
-    contextProvider: () => _navigatorKey.currentContext,
-    service: GitHubFeedbackService(
-      GitHubFeedbackConfig(
-        token: const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN'),
-        owner: 'my-org',   // GitHub user or organisation
-        repo: 'my-app',    // repository name
+  if (_shakeFeedbackEnabled) {
+    ShakeFeedbackController.init(
+      contextProvider: () => _navigatorKey.currentContext,
+      service: GitHubFeedbackService(
+        GitHubFeedbackConfig(
+          token: const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN'),
+          owner: 'my-org',   // GitHub user or organisation
+          repo: 'my-app',    // repository name
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 ```
 
