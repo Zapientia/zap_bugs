@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import 'feedback_submission.dart';
-import 'shake_feedback_strings.dart';
+import 'package:shake_feedback/src/feedback_submission.dart';
+import 'package:shake_feedback/src/shake_feedback_strings.dart';
 
 /// A self-contained feedback dialog that shows a description field and an
 /// optional screenshot preview.
@@ -16,13 +16,17 @@ import 'shake_feedback_strings.dart';
 /// Returns a [FeedbackSubmission] when the user taps submit, or `null` when
 /// they dismiss / cancel.
 class FeedbackDialog extends StatefulWidget {
+  /// Creates a [FeedbackDialog].
   const FeedbackDialog({
     super.key,
     this.screenshotBytes,
     this.strings = const ShakeFeedbackStrings(),
   });
 
+  /// The PNG bytes of the screenshot to preview, or `null` if unavailable.
   final Uint8List? screenshotBytes;
+
+  /// The strings used for labels and buttons in this dialog.
   final ShakeFeedbackStrings strings;
 
   /// Convenience method to show the dialog and await the result.

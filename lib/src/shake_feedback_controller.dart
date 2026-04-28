@@ -7,10 +7,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:shake/shake.dart';
 
-import 'feedback_dialog.dart';
-import 'feedback_service.dart';
-import 'feedback_submission.dart';
-import 'shake_feedback_strings.dart';
+import 'package:shake_feedback/src/feedback_dialog.dart';
+import 'package:shake_feedback/src/feedback_service.dart';
+import 'package:shake_feedback/src/feedback_submission.dart';
+import 'package:shake_feedback/src/shake_feedback_strings.dart';
 
 /// Signature for the callback invoked after the user submits feedback.
 ///
@@ -131,7 +131,6 @@ class ShakeFeedbackController {
   static ShakeFeedbackStrings _strings = const ShakeFeedbackStrings();
 
   static const double _screenshotPixelRatio = 2.0;
-  static const int _issueTitleMaxLength = 80;
 
   static Future<void> _onShake() async {
     if (_isDialogOpen) return;
@@ -198,13 +197,5 @@ class ShakeFeedbackController {
     SchedulerBinding.instance.scheduleFrame();
     WidgetsBinding.instance.addPostFrameCallback((_) => completer.complete());
     await completer.future;
-  }
-
-  /// Truncates [description] to fit a single-line issue title.
-  static String buildIssueTitleFromDescription(String description) {
-    final normalized = description.trim().replaceAll(RegExp(r'\s+'), ' ');
-    if (normalized.isEmpty) return 'Feedback report';
-    if (normalized.length <= _issueTitleMaxLength) return normalized;
-    return '${normalized.substring(0, _issueTitleMaxLength - 1)}\u2026';
   }
 }

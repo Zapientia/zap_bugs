@@ -1,17 +1,15 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'feedback_service.dart';
-import 'feedback_submission.dart';
-import 'shake_feedback_controller.dart';
+import 'package:shake_feedback/src/feedback_service.dart';
+import 'package:shake_feedback/src/feedback_submission.dart';
 
 /// Configuration for the built-in GitHub issue submitter.
 class GitHubFeedbackConfig {
+  /// Creates a [GitHubFeedbackConfig].
   const GitHubFeedbackConfig({
     required this.token,
     required this.owner,
@@ -42,23 +40,8 @@ class GitHubFeedbackConfig {
 
 /// A ready-made [FeedbackService] implementation that creates a GitHub issue
 /// and (optionally) uploads a screenshot to the repository.
-///
-/// ### Usage with [ShakeFeedbackController]
-/// ```dart
-/// final githubService = GitHubFeedbackService(
-///   GitHubFeedbackConfig(
-///     token: const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN'),
-///     owner: 'my-org',
-///     repo: 'my-app',
-///   ),
-/// );
-///
-/// ShakeFeedbackController.init(
-///   contextProvider: () => navigatorKey.currentContext,
-///   service: githubService,
-/// );
-/// ```
 class GitHubFeedbackService extends FeedbackService {
+  /// Creates a [GitHubFeedbackService] with the given [config].
   GitHubFeedbackService(this._config);
 
   static const String _apiBase = 'https://api.github.com';
@@ -83,9 +66,7 @@ class GitHubFeedbackService extends FeedbackService {
     }
 
     await _createIssue(
-      title: ShakeFeedbackController.buildIssueTitleFromDescription(
-        submission.description,
-      ),
+      title: _buildIssueTitle(submission.description),
       description: submission.description,
       deviceInfo: deviceInfo,
       screenshotUrl: screenshotUrl,
@@ -93,8 +74,7 @@ class GitHubFeedbackService extends FeedbackService {
   }
 
   Future<String?> _uploadScreenshot(Uint8List bytes) async {
-    final filename =
-        'screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
+    final filename = 'screenshot-${DateTime.now().millisecondsSinceEpoch}.png';
     final url = Uri.parse(
       '$_apiBase/repos/${_config.owner}/${_config.repo}'
       '/contents/${_config.screenshotsPath}/$filename',
@@ -123,9 +103,10 @@ class GitHubFeedbackService extends FeedbackService {
     required String deviceInfo,
     String? screenshotUrl,
   }) async {
-    final screenshotSection = screenshotUrl != null
-        ? '\n\n## Screenshot\n![Screenshot]($screenshotUrl)'
-        : '';
+    final screenshotSection =
+        screenshotUrl != null
+            ? '\n\n## Screenshot\n![Screenshot]($screenshotUrl)'
+            : '';
 
     final body = '''
 ## Description
@@ -166,17 +147,25 @@ $deviceInfo$screenshotSection
     ];
 
     if (!kIsWeb) {
-      rows.add('| Platform | ${Platform.operatingSystem} |');
-      rows.add('| OS version | ${Platform.operatingSystemVersion} |');
+      rows.add('| Platform | ${defaultTargetPlatform.name} |');
     }
 
     return rows.join('\n');
   }
 
   Map<String, String> get _headers => {
-        'Authorization': 'Bearer ${_config.token}',
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json',
-        'X-GitHub-Api-Version': '2022-11-28',
-      };
+    'Authorization': 'Bearer ${_config.token}',
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+
+  static const int _issueTitleMaxLength = 80;
+
+  static String _buildIssueTitle(String description) {
+    final normalized = description.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (normalized.isEmpty) return 'Feedback report';
+    if (normalized.length <= _issueTitleMaxLength) return normalized;
+    return '${normalized.substring(0, _issueTitleMaxLength - 1)}\u2026';
+  }
 }

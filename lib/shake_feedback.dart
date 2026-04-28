@@ -27,7 +27,7 @@
 /// // 3. Clean up when the app is done:
 /// ShakeFeedbackController.dispose();
 /// ```
-library shake_feedback;
+library;
 
 export 'src/feedback_dialog.dart';
 export 'src/feedback_service.dart';

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'feedback_submission.dart';
+import 'package:shake_feedback/src/feedback_submission.dart';
 
 /// Contract for any backend that receives shake-to-report feedback.
 ///
@@ -23,6 +23,7 @@ import 'feedback_submission.dart';
 /// }
 /// ```
 abstract class FeedbackService {
+  /// Creates a [FeedbackService].
   const FeedbackService();
 
   /// Called after the user fills in and submits the feedback dialog.
