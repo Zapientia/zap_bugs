@@ -1,4 +1,4 @@
-# shake_feedback
+# zap_bugs
 
 A Flutter package that detects device shakes, captures a screenshot, shows a feedback dialog, and submits the report — with a built-in GitHub Issues integration.
 
@@ -23,7 +23,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  shake_feedback: ^0.1.0
+  zap_bugs: ^0.1.0
 ```
 
 Then run:
@@ -78,7 +78,7 @@ For CI/CD, store both as secrets and inject them the same way.
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:shake_feedback/shake_feedback.dart';
+import 'package:zap_bugs/zap_bugs.dart';
 
 const _shakeFeedbackEnabled =
     bool.fromEnvironment('SHAKE_FEEDBACK_ENABLED', defaultValue: false);
