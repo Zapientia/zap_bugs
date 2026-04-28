@@ -29,7 +29,7 @@ abstract class FeedbackService {
   /// Called after the user fills in and submits the feedback dialog.
   ///
   /// Throw any exception to trigger the error snack-bar inside
-  /// [ShakeFeedbackController].
+  /// [ZapBugsController].
   Future<void> submit(
     FeedbackSubmission submission,
     Uint8List? screenshotBytes,

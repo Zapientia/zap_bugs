@@ -3,9 +3,9 @@
 /// Override any field to provide your own copy or translations. Every field has
 /// a sensible English default so callers only need to supply what they want to
 /// customise.
-class ShakeFeedbackStrings {
-  /// Creates a [ShakeFeedbackStrings] instance; override only the fields you need.
-  const ShakeFeedbackStrings({
+class ZapBugsStrings {
+  /// Creates a [ZapBugsStrings] instance; override only the fields you need.
+  const ZapBugsStrings({
     this.dialogTitle = 'Report a bug or send feedback',
     this.descriptionLabel = 'Description',
     this.descriptionHint = 'Describe the bug or your feedback',

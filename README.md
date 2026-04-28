@@ -9,7 +9,7 @@ A Flutter package that detects device shakes, captures a screenshot, shows a fee
 - Shake detection (powered by [`shake`](https://pub.dev/packages/shake)) with tuneable sensitivity
 - In-app screenshot capture at shake time
 - Material dialog — fully themed via `DialogTheme`, `InputDecorationTheme`, `TextButtonThemeData`, and `FilledButtonThemeData`
-- Fully injectable strings — supply your own copy or translations via `ShakeFeedbackStrings`
+- Fully injectable strings — supply your own copy or translations via `ZapBugsStrings`
 - `FeedbackService` abstract class — implement once to send feedback anywhere (Jira, Linear, Slack, your own API…)
 - Built-in `GitHubFeedbackService` — creates a GitHub issue with device info and an uploaded screenshot
 - Web-safe: shake detection is silently skipped on non-mobile platforms
@@ -72,7 +72,7 @@ For CI/CD, store both as secrets and inject them the same way.
 
 ### Step 3 — Wire up the package
 
-> **Note:** `ShakeFeedbackController.init` is a no-op on web but **active on all other platforms, including release builds**. This is intentional — TestFlight and Google Play internal testing use release archives and still need shake feedback. Gate the call with your own flag so production builds stay clean.
+> **Note:** `ZapBugsController.init` is a no-op on web but **active on all other platforms, including release builds**. This is intentional — TestFlight and Google Play internal testing use release archives and still need shake feedback. Gate the call with your own flag so production builds stay clean.
 
 **`main.dart`**
 
@@ -88,13 +88,13 @@ final _navigatorKey = GlobalKey<NavigatorState>();
 void main() {
   runApp(
     RepaintBoundary(
-      key: ShakeFeedbackController.screenshotKey, // required for screenshots
+      key: ZapBugsController.screenshotKey, // required for screenshots
       child: MyApp(navigatorKey: _navigatorKey),
     ),
   );
 
   if (_shakeFeedbackEnabled) {
-    ShakeFeedbackController.init(
+    ZapBugsController.init(
       contextProvider: () => _navigatorKey.currentContext,
       service: GitHubFeedbackService(
         GitHubFeedbackConfig(
@@ -113,7 +113,7 @@ void main() {
 ```dart
 AppLifecycleListener(
   onExitRequested: () async {
-    ShakeFeedbackController.dispose();
+    ZapBugsController.dispose();
     return AppExitResponse.exit;
   },
 );
@@ -135,14 +135,14 @@ That's it — shake the device and a GitHub issue will be created automatically.
 
 ---
 
-## `ShakeFeedbackController.init` reference
+## `ZapBugsController.init` reference
 
 | Parameter               | Type                       | Default      | Description                                                           |
 | ----------------------- | -------------------------- | ------------ | --------------------------------------------------------------------- |
 | `contextProvider`       | `BuildContext? Function()` | required     | Returns the current context — typically `navigatorKey.currentContext` |
 | `onSubmit`              | `OnFeedbackSubmit?`        | `null`       | Raw submit callback; takes precedence over `service`                  |
 | `service`               | `FeedbackService?`         | `null`       | Any `FeedbackService` implementation                                  |
-| `strings`               | `ShakeFeedbackStrings`     | default copy | Customise or translate all user-visible text                          |
+| `strings`               | `ZapBugsStrings`           | default copy | Customise or translate all user-visible text                          |
 | `minimumShakeCount`     | `int`                      | `1`          | Number of shakes required to trigger                                  |
 | `shakeSlopTimeMS`       | `int`                      | `500`        | Minimum ms between shakes                                             |
 | `shakeCountResetTime`   | `int`                      | `3000`       | ms after which the shake count resets                                 |

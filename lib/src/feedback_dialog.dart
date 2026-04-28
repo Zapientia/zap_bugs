@@ -20,20 +20,20 @@ class FeedbackDialog extends StatefulWidget {
   const FeedbackDialog({
     super.key,
     this.screenshotBytes,
-    this.strings = const ShakeFeedbackStrings(),
+    this.strings = const ZapBugsStrings(),
   });
 
   /// The PNG bytes of the screenshot to preview, or `null` if unavailable.
   final Uint8List? screenshotBytes;
 
   /// The strings used for labels and buttons in this dialog.
-  final ShakeFeedbackStrings strings;
+  final ZapBugsStrings strings;
 
   /// Convenience method to show the dialog and await the result.
   static Future<FeedbackSubmission?> show({
     required BuildContext context,
     Uint8List? screenshotBytes,
-    ShakeFeedbackStrings strings = const ShakeFeedbackStrings(),
+    ZapBugsStrings strings = const ZapBugsStrings(),
   }) {
     return showDialog<FeedbackSubmission>(
       context: context,
@@ -91,7 +91,7 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
         children: [
           Text(widget.strings.descriptionLabel),
           const SizedBox(height: _spacingMedium),
-          TextFormField(
+          TextField(
             controller: _controller,
             decoration: InputDecoration(
               hintText: widget.strings.descriptionHint,

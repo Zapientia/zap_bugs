@@ -28,12 +28,12 @@ typedef OnFeedbackSubmit =
 /// ```dart
 /// // In main.dart — wrap your root widget:
 /// RepaintBoundary(
-///   key: ShakeFeedbackController.screenshotKey,
+///   key: ZapBugsController.screenshotKey,
 ///   child: MyApp(),
 /// )
 ///
 /// // After runApp — using a raw callback:
-/// ShakeFeedbackController.init(
+/// ZapBugsController.init(
 ///   contextProvider: () => navigatorKey.currentContext,
 ///   onSubmit: (submission, screenshot) async {
 ///     // send wherever you like
@@ -41,15 +41,15 @@ typedef OnFeedbackSubmit =
 /// );
 ///
 /// // Or use any FeedbackService implementation:
-/// ShakeFeedbackController.init(
+/// ZapBugsController.init(
 ///   contextProvider: () => navigatorKey.currentContext,
 ///   service: GitHubFeedbackService(config),
 /// );
 /// ```
 ///
 /// Call [dispose] when your app shuts down (e.g. in `AppLifecycleListener`).
-class ShakeFeedbackController {
-  ShakeFeedbackController._();
+class ZapBugsController {
+  ZapBugsController._();
 
   // ---------------------------------------------------------------------------
   // Public surface
@@ -84,7 +84,7 @@ class ShakeFeedbackController {
     required BuildContext? Function() contextProvider,
     OnFeedbackSubmit? onSubmit,
     FeedbackService? service,
-    ShakeFeedbackStrings strings = const ShakeFeedbackStrings(),
+    ZapBugsStrings strings = const ZapBugsStrings(),
     int minimumShakeCount = 1,
     int shakeSlopTimeMS = 500,
     int shakeCountResetTime = 3000,
@@ -111,7 +111,7 @@ class ShakeFeedbackController {
         shakeCountResetTime: shakeCountResetTime,
         shakeThresholdGravity: shakeThresholdGravity,
       );
-    }, (e, _) => debugPrint('[ShakeFeedback] ShakeDetector unavailable: $e'));
+    }, (e, _) => debugPrint('[ZapBugs] ShakeDetector unavailable: $e'));
   }
 
   /// Stops the shake detector. Call this when your app is being disposed.
@@ -128,7 +128,7 @@ class ShakeFeedbackController {
   static bool _isDialogOpen = false;
   static BuildContext? Function() _contextProvider = () => null;
   static OnFeedbackSubmit _onSubmit = (_, __) async {};
-  static ShakeFeedbackStrings _strings = const ShakeFeedbackStrings();
+  static ZapBugsStrings _strings = const ZapBugsStrings();
 
   static const double _screenshotPixelRatio = 2.0;
 
