@@ -165,7 +165,7 @@ class LinearFeedbackService extends FeedbackService {
   }
 }
 
-ShakeFeedbackController.init(
+ZapBugsController.init(
   contextProvider: () => _navigatorKey.currentContext,
   service: LinearFeedbackService(),
 );
