@@ -33,5 +33,5 @@ export 'src/feedback_dialog.dart';
 export 'src/feedback_service.dart';
 export 'src/feedback_submission.dart';
 export 'src/github_feedback_service.dart';
-export 'src/shake_feedback_controller.dart';
-export 'src/shake_feedback_strings.dart';
+export 'src/zap_bugs_controller.dart';
+export 'src/zap_bugs_strings.dart';

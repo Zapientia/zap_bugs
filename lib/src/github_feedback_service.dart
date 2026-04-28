@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 
-import 'package:shake_feedback/src/feedback_service.dart';
-import 'package:shake_feedback/src/feedback_submission.dart';
+import 'package:zap_bugs/src/feedback_service.dart';
+import 'package:zap_bugs/src/feedback_submission.dart';
 
 /// Configuration for the built-in GitHub issue submitter.
 class GitHubFeedbackConfig {
@@ -55,7 +55,7 @@ class GitHubFeedbackService extends FeedbackService {
     Uint8List? screenshotBytes,
   ) async {
     if (_config.token.trim().isEmpty) {
-      throw Exception('[shake_feedback] Missing GitHub feedback token.');
+      throw Exception('[zap_bugs] Missing GitHub feedback token.');
     }
 
     final deviceInfo = await _collectDeviceInfo();
@@ -132,7 +132,7 @@ $deviceInfo$screenshotSection
 
     if (response.statusCode != 201) {
       throw Exception(
-        '[shake_feedback] Failed to create GitHub issue: '
+        '[zap_bugs] Failed to create GitHub issue: '
         '${response.statusCode} ${response.body}',
       );
     }

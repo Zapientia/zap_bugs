@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-import 'package:shake_feedback/src/feedback_submission.dart';
-import 'package:shake_feedback/src/shake_feedback_strings.dart';
+import 'package:zap_bugs/src/feedback_submission.dart';
+import 'package:zap_bugs/src/zap_bugs_strings.dart';
 
 /// A self-contained feedback dialog that shows a description field and an
 /// optional screenshot preview.

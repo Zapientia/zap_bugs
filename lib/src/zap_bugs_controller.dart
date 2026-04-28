@@ -7,10 +7,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:shake/shake.dart';
 
-import 'package:shake_feedback/src/feedback_dialog.dart';
-import 'package:shake_feedback/src/feedback_service.dart';
-import 'package:shake_feedback/src/feedback_submission.dart';
-import 'package:shake_feedback/src/shake_feedback_strings.dart';
+import 'package:zap_bugs/src/feedback_dialog.dart';
+import 'package:zap_bugs/src/feedback_service.dart';
+import 'package:zap_bugs/src/feedback_submission.dart';
+import 'package:zap_bugs/src/zap_bugs_strings.dart';
 
 /// Signature for the callback invoked after the user submits feedback.
 ///

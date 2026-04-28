@@ -1,4 +1,4 @@
-/// All user-visible strings shown by `shake_feedback` widgets.
+/// All user-visible strings shown by `zap_bugs` widgets.
 ///
 /// Override any field to provide your own copy or translations. Every field has
 /// a sensible English default so callers only need to supply what they want to

@@ -1,12 +1,12 @@
-name: shake_feedback
+name: zap_bugs
 description: >
   A Flutter package that detects device shakes, captures a screenshot, shows a
   feedback dialog, and submits the result via any backend — fully configurable
   and localization-friendly. Includes a built-in GitHub Issues integration.
 version: 0.1.0
-homepage: https://github.com/Zapientia/shake_feedback
-repository: https://github.com/Zapientia/shake_feedback
-issue_tracker: https://github.com/Zapientia/shake_feedback/issues
+homepage: https://github.com/Zapientia/zap_bugs
+repository: https://github.com/Zapientia/zap_bugs
+issue_tracker: https://github.com/Zapientia/zap_bugs/issues
 
 environment:
   sdk: ^3.7.2

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:shake_feedback/src/feedback_submission.dart';
+import 'package:zap_bugs/src/feedback_submission.dart';
 
 /// Contract for any backend that receives shake-to-report feedback.
 ///
