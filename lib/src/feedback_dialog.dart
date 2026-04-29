@@ -126,9 +126,7 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
           const SizedBox(height: _spacingSmall),
           TextField(
             controller: _reporterController,
-            decoration: InputDecoration(
-              hintText: widget.strings.reporterHint,
-            ),
+            decoration: InputDecoration(hintText: widget.strings.reporterHint),
             maxLines: _reporterMaxLines,
             minLines: _reporterMaxLines,
             textInputAction: TextInputAction.next,

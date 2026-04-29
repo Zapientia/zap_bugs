@@ -147,7 +147,9 @@ void main() {
     expect(find.text('Dismiss'), findsOneWidget);
   });
 
-  testWidgets('loads saved reporter name from local preferences', (tester) async {
+  testWidgets('loads saved reporter name from local preferences', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({'zap_bugs.reporter': 'Clara'});
 
     await pumpDialog(tester);
