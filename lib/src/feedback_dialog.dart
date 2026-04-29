@@ -89,7 +89,12 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.strings.descriptionLabel),
+          Text(
+            widget.strings.descriptionLabel,
+            style:
+                Theme.of(context).dialogTheme.contentTextStyle ??
+                Theme.of(context).textTheme.bodyMedium,
+          ),
           const SizedBox(height: _spacingMedium),
           TextField(
             controller: _controller,
@@ -123,6 +128,7 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
     } else {
       radius = BorderRadius.circular(_fallbackBorderRadius);
     }
+
     return ClipRRect(
       borderRadius: radius,
       child: Image.memory(

@@ -12,7 +12,7 @@ A Flutter package that detects device shakes, captures a screenshot, shows a fee
 - Fully injectable strings — supply your own copy or translations via `ZapBugsStrings`
 - `FeedbackService` abstract class — implement once to send feedback anywhere (Jira, Linear, Slack, your own API…)
 - Built-in `GitHubFeedbackService` — creates a GitHub issue with device info and an uploaded screenshot
-- Web-safe: shake detection is silently skipped on non-mobile platforms
+- Web-safe: shake detection is silently skipped on Flutter Web
 - Beta-friendly: works in TestFlight and Google Play internal testing builds since you control when to enable it
 
 ---
@@ -142,11 +142,45 @@ That's it — shake the device and a GitHub issue will be created automatically.
 | `contextProvider`       | `BuildContext? Function()` | required     | Returns the current context — typically `navigatorKey.currentContext` |
 | `onSubmit`              | `OnFeedbackSubmit?`        | `null`       | Raw submit callback; takes precedence over `service`                  |
 | `service`               | `FeedbackService?`         | `null`       | Any `FeedbackService` implementation                                  |
-| `strings`               | `ZapBugsStrings`           | default copy | Customise or translate all user-visible text                          |
+| `strings`               | `ZapBugsStrings?`          | `null`       | Static copy override; falls back to built-in defaults when omitted    |
+| `stringsBuilder`        | `ZapBugsStrings Function(BuildContext)?` | `null` | Lazy, context-aware strings (best for `AppLocalizations`); takes precedence over `strings` |
 | `minimumShakeCount`     | `int`                      | `1`          | Number of shakes required to trigger                                  |
 | `shakeSlopTimeMS`       | `int`                      | `500`        | Minimum ms between shakes                                             |
 | `shakeCountResetTime`   | `int`                      | `3000`       | ms after which the shake count resets                                 |
 | `shakeThresholdGravity` | `double`                   | `2.7`        | Sensitivity — lower values trigger more easily                        |
+
+---
+
+## Localization patterns
+
+Use either approach depending on your app architecture:
+
+- Use `strings` when you have static copy (or non-context translation systems).
+- Use `stringsBuilder` when your app uses context-based localization such as `AppLocalizations`.
+
+```dart
+ZapBugsController.init(
+  contextProvider: () => _navigatorKey.currentContext,
+  service: GitHubFeedbackService(config),
+  stringsBuilder: (context) {
+    final l10n = AppLocalizations.of(context)!;
+    return ZapBugsStrings(
+      dialogTitle: l10n.feedbackDialogTitle,
+      descriptionLabel: l10n.feedbackDialogDescription,
+      submitButton: l10n.feedbackSubmitButton,
+      cancelButton: l10n.cancel,
+      successMessage: l10n.feedbackSubmitSuccess,
+      errorMessage: l10n.feedbackSubmitError,
+    );
+  },
+);
+```
+
+Resolution precedence is:
+
+1. `stringsBuilder(context)`
+2. `strings`
+3. built-in `ZapBugsStrings()` defaults
 
 ---
 
@@ -175,7 +209,7 @@ ZapBugsController.init(
 
 ## Customising the dialog
 
-Override any of these `ThemeData` properties in your app's theme:
+Override these `ThemeData` properties in your app theme:
 
 ```dart
 ThemeData(
@@ -194,6 +228,31 @@ ThemeData(
   ),
 )
 ```
+
+---
+
+## Troubleshooting
+
+### Shake is not detected
+
+- Ensure `ZapBugsController.init(...)` is called.
+- Confirm the feature flag is enabled (`SHAKE_FEEDBACK_ENABLED=true`) in test/beta builds.
+- Try lowering `shakeThresholdGravity` if trigger sensitivity is too strict.
+
+### Dialog never appears
+
+- Make sure `contextProvider` returns a valid, mounted context (commonly `navigatorKey.currentContext`).
+- Verify your app has a `MaterialApp`/`ScaffoldMessenger` in the widget tree.
+
+### Screenshot is missing
+
+- Ensure your app root is wrapped in a `RepaintBoundary` with `key: ZapBugsController.screenshotKey`.
+- Screenshot capture failures are handled gracefully; feedback can still be submitted without an image.
+
+### GitHub submission fails
+
+- Validate PAT permissions (`Contents: Read and write`, `Issues: Read and write`).
+- Ensure token, owner, and repo values are correct and token is not expired/revoked.
 
 ---
 

@@ -1,0 +1,21 @@
+name: zap_bugs_example
+description: Example app for the zap_bugs package.
+publish_to: 'none'
+
+environment:
+  sdk: ^3.7.2
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  zap_bugs:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
