@@ -77,14 +77,33 @@ class ZapBugsController {
   ///   an error snack-bar.
   /// - [service] — a [FeedbackService] instance (e.g. [GitHubFeedbackService]).
   ///   Ignored when [onSubmit] is provided.
-  /// - [strings] — customise all user-visible copy (or provide translations).
+  /// - [strings] — override user-visible copy with static strings.  Suitable
+  ///   for apps that are not localised or that manage translations outside of
+  ///   Flutter's `AppLocalizations` system.  Defaults to built-in English copy
+  ///   when omitted.
+  /// - [stringsBuilder] — resolve strings lazily from the [BuildContext] that
+  ///   is already available at dialog-show time.  Use this when your app uses
+  ///   `AppLocalizations` (or any context-dependent i18n solution) so that the
+  ///   correct locale is always applied:
+  ///   ```dart
+  ///   stringsBuilder: (context) {
+  ///     final l10n = AppLocalizations.of(context)!;
+  ///     return ZapBugsStrings(
+  ///       dialogTitle: l10n.feedbackTitle,
+  ///       submitButton: l10n.submit,
+  ///       // …
+  ///     );
+  ///   },
+  ///   ```
+  ///   When supplied, [stringsBuilder] takes precedence over [strings].
   /// - Shake tuning parameters: [minimumShakeCount], [shakeSlopTimeMS],
   ///   [shakeCountResetTime], [shakeThresholdGravity].
   static void init({
     required BuildContext? Function() contextProvider,
     OnFeedbackSubmit? onSubmit,
     FeedbackService? service,
-    ZapBugsStrings strings = const ZapBugsStrings(),
+    ZapBugsStrings? strings,
+    ZapBugsStrings Function(BuildContext context)? stringsBuilder,
     int minimumShakeCount = 1,
     int shakeSlopTimeMS = 500,
     int shakeCountResetTime = 3000,
@@ -102,6 +121,7 @@ class ZapBugsController {
         onSubmit ??
         (submission, screenshot) => service!.submit(submission, screenshot);
     _strings = strings;
+    _stringsBuilder = stringsBuilder;
 
     runZonedGuarded(() {
       _detector = ShakeDetector.autoStart(
@@ -128,7 +148,8 @@ class ZapBugsController {
   static bool _isDialogOpen = false;
   static BuildContext? Function() _contextProvider = () => null;
   static OnFeedbackSubmit _onSubmit = (_, __) async {};
-  static ZapBugsStrings _strings = const ZapBugsStrings();
+  static ZapBugsStrings? _strings;
+  static ZapBugsStrings Function(BuildContext)? _stringsBuilder;
 
   static const double _screenshotPixelRatio = 2.0;
 
@@ -146,10 +167,15 @@ class ZapBugsController {
       return;
     }
 
+    final strings =
+        _stringsBuilder != null
+            ? _stringsBuilder!(context)
+            : (_strings ?? const ZapBugsStrings());
+
     final submission = await FeedbackDialog.show(
       context: context,
       screenshotBytes: screenshot,
-      strings: _strings,
+      strings: strings,
     );
 
     if (submission != null && context.mounted) {
@@ -159,13 +185,13 @@ class ZapBugsController {
         if (context.mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(_strings.successMessage)));
+          ).showSnackBar(SnackBar(content: Text(strings.successMessage)));
         }
       } catch (_) {
         if (context.mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text(_strings.errorMessage)));
+          ).showSnackBar(SnackBar(content: Text(strings.errorMessage)));
         }
       }
     }
