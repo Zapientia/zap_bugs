@@ -2,9 +2,14 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zap_bugs/zap_bugs.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   Future<void> pumpDialog(
     WidgetTester tester, {
     Uint8List? screenshotBytes,
@@ -31,7 +36,7 @@ void main() {
     final sendButton = tester.widget<FilledButton>(find.byType(FilledButton));
     expect(sendButton.onPressed, isNull);
 
-    await tester.enterText(find.byType(TextField), 'Some feedback');
+    await tester.enterText(find.byType(TextField).at(1), 'Some feedback');
     await tester.pump();
 
     final updatedButton = tester.widget<FilledButton>(
@@ -125,6 +130,8 @@ void main() {
   testWidgets('uses custom strings', (tester) async {
     const strings = ZapBugsStrings(
       dialogTitle: 'Custom title',
+      reporterLabel: 'Custom reporter label',
+      reporterHint: 'Custom reporter hint',
       descriptionLabel: 'Custom label',
       submitButton: 'Ship it',
       cancelButton: 'Dismiss',
@@ -133,8 +140,18 @@ void main() {
     await pumpDialog(tester, strings: strings);
 
     expect(find.text('Custom title'), findsOneWidget);
+    expect(find.text('Custom reporter label'), findsOneWidget);
+    expect(find.text('Custom reporter hint'), findsOneWidget);
     expect(find.text('Custom label'), findsOneWidget);
     expect(find.text('Ship it'), findsOneWidget);
     expect(find.text('Dismiss'), findsOneWidget);
+  });
+
+  testWidgets('loads saved reporter name from local preferences', (tester) async {
+    SharedPreferences.setMockInitialValues({'zap_bugs.reporter': 'Clara'});
+
+    await pumpDialog(tester);
+
+    expect(find.text('Clara'), findsOneWidget);
   });
 }

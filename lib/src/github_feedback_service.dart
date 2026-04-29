@@ -68,6 +68,7 @@ class GitHubFeedbackService extends FeedbackService {
     await _createIssue(
       title: _buildIssueTitle(submission.description),
       description: submission.description,
+      reporter: submission.reporter,
       deviceInfo: deviceInfo,
       screenshotUrl: screenshotUrl,
     );
@@ -100,9 +101,12 @@ class GitHubFeedbackService extends FeedbackService {
   Future<void> _createIssue({
     required String title,
     required String description,
+    required String reporter,
     required String deviceInfo,
     String? screenshotUrl,
   }) async {
+    final reporterSection =
+        reporter.trim().isEmpty ? '' : '\n\n## Reporter\n${reporter.trim()}';
     final screenshotSection =
         screenshotUrl != null
             ? '\n\n## Screenshot\n![Screenshot]($screenshotUrl)'
@@ -111,6 +115,7 @@ class GitHubFeedbackService extends FeedbackService {
     final body = '''
 ## Description
 $description
+$reporterSection
 
 ## Device Info
 $deviceInfo$screenshotSection

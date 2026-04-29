@@ -10,6 +10,7 @@ A Flutter package that detects device shakes, captures a screenshot, shows a fee
 - In-app screenshot capture at shake time
 - Material dialog — fully themed via `DialogTheme`, `InputDecorationTheme`, `TextButtonThemeData`, and `FilledButtonThemeData`
 - Fully injectable strings — supply your own copy or translations via `ZapBugsStrings`
+- Optional reporter name field that is persisted locally per device for future reports
 - `FeedbackService` abstract class — implement once to send feedback anywhere (Jira, Linear, Slack, your own API…)
 - Built-in `GitHubFeedbackService` — creates a GitHub issue with device info and an uploaded screenshot
 - Web-safe: shake detection is silently skipped on Flutter Web
@@ -195,6 +196,7 @@ class LinearFeedbackService extends FeedbackService {
     FeedbackSubmission submission,
     Uint8List? screenshotBytes,
   ) async {
+    // `submission.reporter` contains the optional reporter name.
     // POST to Linear, Jira, Slack webhook, etc.
   }
 }
@@ -226,6 +228,15 @@ ThemeData(
   filledButtonTheme: FilledButtonThemeData(
     style: FilledButton.styleFrom(backgroundColor: Colors.deepPurple),
   ),
+)
+```
+
+You can customize reporter field copy through `ZapBugsStrings`:
+
+```dart
+const ZapBugsStrings(
+  reporterLabel: 'Reporter',
+  reporterHint: 'Your name',
 )
 ```
 

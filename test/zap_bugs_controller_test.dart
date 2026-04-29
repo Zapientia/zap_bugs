@@ -28,6 +28,8 @@ void main() {
     const strings = ZapBugsStrings();
 
     expect(strings.dialogTitle, isNotEmpty);
+    expect(strings.reporterLabel, isNotEmpty);
+    expect(strings.reporterHint, isNotEmpty);
     expect(strings.descriptionLabel, isNotEmpty);
     expect(strings.descriptionHint, isNotEmpty);
     expect(strings.screenshotPreviewLabel, isNotEmpty);

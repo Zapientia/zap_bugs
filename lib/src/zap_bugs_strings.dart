@@ -7,6 +7,8 @@ class ZapBugsStrings {
   /// Creates a [ZapBugsStrings] instance; override only the fields you need.
   const ZapBugsStrings({
     this.dialogTitle = 'Report a bug or send feedback',
+    this.reporterLabel = 'Your name (optional)',
+    this.reporterHint = 'e.g. Alex',
     this.descriptionLabel = 'Description',
     this.descriptionHint = 'Describe the bug or your feedback',
     this.screenshotPreviewLabel = 'Screenshot preview',
@@ -18,6 +20,12 @@ class ZapBugsStrings {
 
   /// Title shown at the top of the feedback dialog.
   final String dialogTitle;
+
+  /// Label above the reporter name text field.
+  final String reporterLabel;
+
+  /// Placeholder text inside the reporter name field.
+  final String reporterHint;
 
   /// Label above the description text field.
   final String descriptionLabel;
