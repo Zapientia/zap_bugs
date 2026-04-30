@@ -90,12 +90,28 @@ class GitHubFeedbackService extends FeedbackService {
       }),
     );
 
-    if (response.statusCode == 201) {
-      return 'https://github.com/${_config.owner}/${_config.repo}'
-          '/blob/main/${_config.screenshotsPath}/$filename?raw=true';
+    if (response.statusCode != 201) {
+      return null;
     }
 
-    return null;
+    // Prefer the raw download URL returned by GitHub so the link points at the
+    // correct branch (works regardless of whether the default branch is `main`,
+    // `master`, or anything else).
+    try {
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final content = decoded['content'];
+      if (content is Map<String, dynamic>) {
+        final downloadUrl = content['download_url'];
+        if (downloadUrl is String && downloadUrl.isNotEmpty) {
+          return downloadUrl;
+        }
+      }
+    } catch (_) {
+      // Fall through to the constructed URL below.
+    }
+
+    return 'https://github.com/${_config.owner}/${_config.repo}'
+        '/blob/HEAD/${_config.screenshotsPath}/$filename?raw=true';
   }
 
   Future<void> _createIssue({

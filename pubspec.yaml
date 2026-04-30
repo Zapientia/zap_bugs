@@ -8,15 +8,11 @@ homepage: https://github.com/Zapientia/zap_bugs
 repository: https://github.com/Zapientia/zap_bugs
 issue_tracker: https://github.com/Zapientia/zap_bugs/issues
 topics:
-  - user-feedback
-  - app-monitoring
-keywords:
-  - flutter
   - feedback
   - bug-reporting
   - shake
-  - github
   - screenshot
+  - github
 
 environment:
   sdk: ^3.7.2
