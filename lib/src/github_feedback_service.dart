@@ -94,16 +94,20 @@ class GitHubFeedbackService extends FeedbackService {
       return null;
     }
 
-    // Prefer the raw download URL returned by GitHub so the link points at the
-    // correct branch (works regardless of whether the default branch is `main`,
-    // `master`, or anything else).
+    // Avoid `content.download_url` from the Contents API.
+    // For private repositories it may contain a short-lived token that expires,
+    // causing 404s in issues after some time.
+    //
+    // Use a stable GitHub URL based on HEAD so the link keeps working across
+    // default-branch names (`main`, `master`, etc.) and over time.
     try {
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       final content = decoded['content'];
       if (content is Map<String, dynamic>) {
-        final downloadUrl = content['download_url'];
-        if (downloadUrl is String && downloadUrl.isNotEmpty) {
-          return downloadUrl;
+        final uploadedPath = content['path'];
+        if (uploadedPath is String && uploadedPath.isNotEmpty) {
+          return 'https://github.com/${_config.owner}/${_config.repo}'
+              '/blob/HEAD/$uploadedPath?raw=true';
         }
       }
     } catch (_) {
