@@ -109,18 +109,17 @@ void main() {
 }
 ```
 
-### Step 4 — Dispose when the app exits
+### Step 4 — Dispose in your app lifecycle (`State.dispose`)
 
 ```dart
-AppLifecycleListener(
-  onExitRequested: () async {
-    ZapBugsController.dispose();
-    return AppExitResponse.exit;
-  },
-);
+@override
+void dispose() {
+  ZapBugsController.dispose();
+  super.dispose();
+}
 ```
 
-That's it — shake the device and a GitHub issue will be created automatically.
+That's it — shake the device, fill in the feedback form, and submit. An issue should be created in the configured GitHub repository with the feedback details and a screenshot attached.
 
 ---
 
@@ -138,17 +137,17 @@ That's it — shake the device and a GitHub issue will be created automatically.
 
 ## `ZapBugsController.init` reference
 
-| Parameter               | Type                       | Default      | Description                                                           |
-| ----------------------- | -------------------------- | ------------ | --------------------------------------------------------------------- |
-| `contextProvider`       | `BuildContext? Function()` | required     | Returns the current context — typically `navigatorKey.currentContext` |
-| `onSubmit`              | `OnFeedbackSubmit?`        | `null`       | Raw submit callback; takes precedence over `service`                  |
-| `service`               | `FeedbackService?`         | `null`       | Any `FeedbackService` implementation                                  |
-| `strings`               | `ZapBugsStrings?`          | `null`       | Static copy override; falls back to built-in defaults when omitted    |
-| `stringsBuilder`        | `ZapBugsStrings Function(BuildContext)?` | `null` | Lazy, context-aware strings (best for `AppLocalizations`); takes precedence over `strings` |
-| `minimumShakeCount`     | `int`                      | `1`          | Number of shakes required to trigger                                  |
-| `shakeSlopTimeMS`       | `int`                      | `500`        | Minimum ms between shakes                                             |
-| `shakeCountResetTime`   | `int`                      | `3000`       | ms after which the shake count resets                                 |
-| `shakeThresholdGravity` | `double`                   | `2.7`        | Sensitivity — lower values trigger more easily                        |
+| Parameter               | Type                                     | Default  | Description                                                                                |
+| ----------------------- | ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `contextProvider`       | `BuildContext? Function()`               | required | Returns the current context — typically `navigatorKey.currentContext`                      |
+| `onSubmit`              | `OnFeedbackSubmit?`                      | `null`   | Raw submit callback; takes precedence over `service`                                       |
+| `service`               | `FeedbackService?`                       | `null`   | Any `FeedbackService` implementation                                                       |
+| `strings`               | `ZapBugsStrings?`                        | `null`   | Static copy override; falls back to built-in defaults when omitted                         |
+| `stringsBuilder`        | `ZapBugsStrings Function(BuildContext)?` | `null`   | Lazy, context-aware strings (best for `AppLocalizations`); takes precedence over `strings` |
+| `minimumShakeCount`     | `int`                                    | `1`      | Number of shakes required to trigger                                                       |
+| `shakeSlopTimeMS`       | `int`                                    | `500`    | Minimum ms between shakes                                                                  |
+| `shakeCountResetTime`   | `int`                                    | `3000`   | ms after which the shake count resets                                                      |
+| `shakeThresholdGravity` | `double`                                 | `2.7`    | Sensitivity — lower values trigger more easily                                             |
 
 ---
 

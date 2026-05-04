@@ -3,60 +3,62 @@ import 'package:zap_bugs/zap_bugs.dart';
 
 import 'app_theme.dart';
 
+// Pass --dart-define=SHAKE_FEEDBACK_ENABLED=true to enable shake feedback.
+// Pass --dart-define=GITHUB_FEEDBACK_TOKEN=ghp_xxx to use GitHub Issues.
 const _shakeFeedbackEnabled = bool.fromEnvironment(
   'SHAKE_FEEDBACK_ENABLED',
-  defaultValue: true,
+  defaultValue: false,
 );
-const _githubToken = String.fromEnvironment('GITHUB_FEEDBACK_TOKEN');
 
 final _navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
-  runApp(const ExampleBootstrap());
-}
+  runApp(
+    RepaintBoundary(
+      key: ZapBugsController.screenshotKey, // required for screenshots
+      child: _ExampleApp(navigatorKey: _navigatorKey),
+    ),
+  );
 
-class ExampleBootstrap extends StatefulWidget {
-  const ExampleBootstrap({super.key});
+  if (_shakeFeedbackEnabled) {
+    final githubToken = const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN');
 
-  @override
-  State<ExampleBootstrap> createState() => _ExampleBootstrapState();
-}
-
-class _ExampleBootstrapState extends State<ExampleBootstrap> {
-  @override
-  void initState() {
-    super.initState();
-
-    if (!_shakeFeedbackEnabled) {
-      return;
-    }
-
-    if (_githubToken.trim().isNotEmpty) {
+    if (githubToken.trim().isNotEmpty) {
       ZapBugsController.init(
         contextProvider: () => _navigatorKey.currentContext,
         service: GitHubFeedbackService(
-          const GitHubFeedbackConfig(
-            token: _githubToken,
+          GitHubFeedbackConfig(
+            token: githubToken,
             owner: 'my-org',
-            repo: 'my-repo',
+            repo: 'my-app',
           ),
         ),
-        stringsBuilder: (_) => const ZapBugsStrings(),
       );
-      return;
+    } else {
+      ZapBugsController.init(
+        contextProvider: () => _navigatorKey.currentContext,
+        onSubmit: (submission, screenshotBytes) async {
+          debugPrint(
+            '[zap_bugs example] ${submission.description} '
+            '(reporter: ${submission.reporter}, '
+            'screenshot: ${screenshotBytes?.length ?? 0} bytes)',
+          );
+        },
+      );
     }
-
-    ZapBugsController.init(
-      contextProvider: () => _navigatorKey.currentContext,
-      onSubmit: (submission, screenshotBytes) async {
-        debugPrint(
-          '[zap_bugs example] ${submission.description} '
-          '(screenshot: ${screenshotBytes?.length ?? 0} bytes)',
-        );
-      },
-    );
   }
+}
 
+class _ExampleApp extends StatefulWidget {
+  const _ExampleApp({required this.navigatorKey});
+
+  final GlobalKey<NavigatorState> navigatorKey;
+
+  @override
+  State<_ExampleApp> createState() => _ExampleAppState();
+}
+
+class _ExampleAppState extends State<_ExampleApp> {
   @override
   void dispose() {
     ZapBugsController.dispose();
@@ -65,28 +67,20 @@ class _ExampleBootstrapState extends State<ExampleBootstrap> {
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      key: ZapBugsController.screenshotKey,
-      child: MaterialApp(
-        navigatorKey: _navigatorKey,
-        debugShowCheckedModeBanner: false,
-        title: 'ZapBugs Example',
-        // Users style ZapBugs the same way they style their app: provide a
-        // normal ThemeData. The dialog picks up DialogTheme, button themes,
-        // input decoration, text theme, and colors from this ambient theme.
-        theme: buildAppTheme(),
-        home: const WellnessHomeScreen(),
-      ),
+    return MaterialApp(
+      navigatorKey: widget.navigatorKey,
+      debugShowCheckedModeBanner: false,
+      title: 'ZapBugs Example',
+      // ZapBugs reads DialogTheme, button themes, input decoration, text
+      // theme, and colors from the ambient theme — style it like your own app.
+      theme: buildAppTheme(),
+      home: const WellnessHomeScreen(),
     );
   }
 }
 
 class WellnessHomeScreen extends StatelessWidget {
   const WellnessHomeScreen({super.key});
-
-  void _openFeedback() {
-    ZapBugsController.show();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -108,7 +102,7 @@ class WellnessHomeScreen extends StatelessWidget {
               const SizedBox(height: 16),
               const _HeartRateCard(),
               const SizedBox(height: 24),
-              _ReportBugTile(onTap: _openFeedback),
+              const _ReportBugTile(),
             ],
           ),
         ),
@@ -408,73 +402,67 @@ class _HeartLinePainter extends CustomPainter {
 }
 
 class _ReportBugTile extends StatelessWidget {
-  const _ReportBugTile({required this.onTap});
-  final VoidCallback onTap;
+  const _ReportBugTile();
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return DecoratedBox(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colors.primary.withValues(alpha: 0.4)),
-            gradient: LinearGradient(
-              colors: [
-                colors.primary.withValues(alpha: 0.18),
-                colors.primary.withValues(alpha: 0.04),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+        border: Border.all(color: colors.primary.withValues(alpha: 0.4)),
+        gradient: LinearGradient(
+          colors: [
+            colors.primary.withValues(alpha: 0.18),
+            colors.primary.withValues(alpha: 0.04),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.bolt_rounded,
+                color: colors.onPrimary,
+                size: 26,
+              ),
             ),
-          ),
-          padding: const EdgeInsets.all(18),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: colors.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.bolt_rounded,
-                  color: colors.onPrimary,
-                  size: 26,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Shake to report a bug',
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Shake to report a bug',
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Tap here to preview the dialog',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Shake your device to report a bug',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Icon(Icons.chevron_right_rounded, color: colors.secondary),
-            ],
-          ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: colors.secondary),
+          ],
         ),
       ),
     );
