@@ -250,6 +250,19 @@ const ZapBugsStrings(
 
 ---
 
+## Screenshot privacy
+
+Screenshots automatically exclude sensitive system UI thanks to the `RepaintBoundary` architecture:
+
+- **Status bar** — not captured (outside the app widget tree)
+- **Notifications** — not captured (OS layer, not Flutter)
+- **Keyboard** — not captured (system overlay)
+- **Notification shade** — not captured (system layer)
+
+Only your app's widget tree (inside the `RepaintBoundary`) is rendered to the screenshot. OS overlays and system UI exist at a different rendering layer and are never included. This is privacy-by-architecture — the tool simply doesn't have access to native system elements in the first place.
+
+---
+
 ## Troubleshooting
 
 ### Shake is not detected
