@@ -3,8 +3,10 @@ import 'package:zap_bugs/zap_bugs.dart';
 
 import 'app_theme.dart';
 
-// Pass --dart-define=SHAKE_FEEDBACK_ENABLED=true to enable shake feedback.
-// Pass --dart-define=GITHUB_FEEDBACK_TOKEN=ghp_xxx to use GitHub Issues.
+// Enable with:
+// --dart-define=SHAKE_FEEDBACK_ENABLED=true
+// --dart-define=GITHUB_FEEDBACK_TOKEN=ghp_xxx
+// Keep both defines out of production builds.
 const _shakeFeedbackEnabled = bool.fromEnvironment(
   'SHAKE_FEEDBACK_ENABLED',
   defaultValue: false,
@@ -21,11 +23,21 @@ void main() {
   );
 
   if (_shakeFeedbackEnabled) {
+    final githubToken = const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN');
+
+    if (githubToken.trim().isEmpty) {
+      debugPrint(
+        '[zap_bugs example] Missing GITHUB_FEEDBACK_TOKEN. '
+        'ZapBugs disabled for this run.',
+      );
+      return;
+    }
+
     ZapBugsController.init(
       contextProvider: () => _navigatorKey.currentContext,
       service: GitHubFeedbackService(
         GitHubFeedbackConfig(
-          token: const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN'),
+          token: githubToken,
           owner: 'my-org',
           repo: 'my-app',
         ),
