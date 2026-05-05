@@ -21,31 +21,16 @@ void main() {
   );
 
   if (_shakeFeedbackEnabled) {
-    final githubToken = const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN');
-
-    if (githubToken.trim().isNotEmpty) {
-      ZapBugsController.init(
-        contextProvider: () => _navigatorKey.currentContext,
-        service: GitHubFeedbackService(
-          GitHubFeedbackConfig(
-            token: githubToken,
-            owner: 'my-org',
-            repo: 'my-app',
-          ),
+    ZapBugsController.init(
+      contextProvider: () => _navigatorKey.currentContext,
+      service: GitHubFeedbackService(
+        GitHubFeedbackConfig(
+          token: const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN'),
+          owner: 'my-org',
+          repo: 'my-app',
         ),
-      );
-    } else {
-      ZapBugsController.init(
-        contextProvider: () => _navigatorKey.currentContext,
-        onSubmit: (submission, screenshotBytes) async {
-          debugPrint(
-            '[zap_bugs example] ${submission.description} '
-            '(reporter: ${submission.reporter}, '
-            'screenshot: ${screenshotBytes?.length ?? 0} bytes)',
-          );
-        },
-      );
-    }
+      ),
+    );
   }
 }
 

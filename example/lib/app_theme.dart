@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-const _brandNavy = Color(0xFF0B1B2B);
-const _brandNavyDeep = Color(0xFF071521);
-const _brandSurface = Color(0xFF11263A);
-const _brandTeal = Color(0xFF1ED0B6);
-const _brandTealSoft = Color(0xFF7FE8D7);
-const _brandTextMuted = Color(0xFF8AA0B4);
+const _brandNavy = Color(0xFF042B59);
+const _brandNavyDeep = Color(0xFF031B36);
+const _brandSurface = Color(0xFF0a3d73);
+const _brandTeal = Color(0xFF027DFD);
+const _brandOrange = Color(0xFFF15B38);
+const _brandBorder = Color(0xFF0553B1);
 
 /// App-level theme for the example.
 ///
@@ -23,16 +23,16 @@ ThemeData buildAppTheme() {
     scaffoldBackgroundColor: _brandNavy,
     colorScheme: const ColorScheme.dark(
       primary: _brandTeal,
-      onPrimary: _brandNavyDeep,
-      secondary: _brandTealSoft,
-      onSecondary: _brandNavyDeep,
+      onPrimary: Colors.white,
+      secondary: _brandBorder,
+      onSecondary: Colors.white,
       surface: _brandSurface,
       onSurface: Colors.white,
-      onSurfaceVariant: _brandTextMuted,
-      error: Color(0xFFFF6B6B),
+      onSurfaceVariant: Color(0xFFD0D8E0),
+      error: _brandOrange,
       onError: Colors.white,
     ),
-    extensions: const [ExampleThemeTokens(primarySoft: _brandTealSoft)],
+    extensions: const [ExampleThemeTokens(primarySoft: _brandOrange)],
     textTheme: textTheme,
     appBarTheme: const AppBarTheme(
       backgroundColor: _brandNavy,
@@ -57,14 +57,15 @@ ThemeData buildAppTheme() {
         fontSize: 20,
       ),
       contentTextStyle: textTheme.bodyMedium?.copyWith(
-        color: _brandTextMuted,
+        color: Color(0xFFD0D8E0),
         fontWeight: FontWeight.w500,
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: _brandNavyDeep,
-      hintStyle: const TextStyle(color: _brandTextMuted),
+      hintStyle: const TextStyle(color: Color(0xFFD0D8E0)),
+      labelStyle: const TextStyle(color: Colors.white),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
@@ -72,19 +73,20 @@ ThemeData buildAppTheme() {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF1E3550), width: 1),
+        borderSide: const BorderSide(color: _brandBorder, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _brandTeal, width: 1.5),
+        borderSide: const BorderSide(color: _brandOrange, width: 1.5),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: _brandTeal,
-        foregroundColor: _brandNavyDeep,
+        foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
         textStyle: const TextStyle(
+          color: Colors.white,
           fontWeight: FontWeight.w700,
           fontSize: 14,
           letterSpacing: 0.3,
@@ -94,7 +96,7 @@ ThemeData buildAppTheme() {
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: _brandTextMuted,
+        foregroundColor: _brandOrange,
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
       ),
