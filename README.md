@@ -14,7 +14,7 @@ A Flutter package that detects device shakes, captures a screenshot, shows a fee
 - `FeedbackService` abstract class — implement once to send feedback anywhere (Jira, Linear, Slack, your own API…)
 - Built-in `GitHubFeedbackService` — creates a GitHub issue with device info and an uploaded screenshot
 - Web-safe: shake detection is silently skipped on Flutter Web
-- Beta-friendly: works in TestFlight and Google Play internal testing builds since you control when to enable it
+- Easy feature-flag rollout using `--dart-define`
 
 ---
 
@@ -50,30 +50,30 @@ flutter pub get
 > Never hard-code the token in source code or commit it to version control.  
 > Pass it at build time using `--dart-define` or a secrets manager.
 
-### Step 2 — Pass both defines at build time
+### Step 2 — Pass defines for non-production builds
 
-The token and the enabled flag travel together:
+Enable ZapBugs only in debug/internal testing builds. In production, do **not** pass the token or enable flag.
 
 ```sh
-# Debug / local
+# Debug / local (enabled)
 flutter run \
   --dart-define=SHAKE_FEEDBACK_ENABLED=true \
   --dart-define=GITHUB_FEEDBACK_TOKEN=ghp_xxxxxxxxxxxx
 
-# TestFlight / Google Play internal testing (release archive, feature still on)
+# Internal testing release build (enabled)
 flutter build ipa \
   --dart-define=SHAKE_FEEDBACK_ENABLED=true \
   --dart-define=GITHUB_FEEDBACK_TOKEN=$GITHUB_FEEDBACK_TOKEN
 
-# Production (feature off — token can be omitted entirely)
+# Production (feature OFF, token omitted)
 flutter build ipa
 ```
 
-For CI/CD, store both as secrets and inject them the same way.
+For CI/CD, store `GITHUB_FEEDBACK_TOKEN` only in non-production pipelines and never inject it into production jobs.
 
 ### Step 3 — Wire up the package
 
-> **Note:** `ZapBugsController.init` is a no-op on web but **active on all other platforms, including release builds**. This is intentional — TestFlight and Google Play internal testing use release archives and still need shake feedback. Gate the call with your own flag so production builds stay clean.
+> **Important:** Treat ZapBugs as a non-production feature. Keep it disabled in production by omitting `SHAKE_FEEDBACK_ENABLED` and `GITHUB_FEEDBACK_TOKEN`.
 
 **`main.dart`**
 
@@ -95,11 +95,14 @@ void main() {
   );
 
   if (_shakeFeedbackEnabled) {
+    final token = const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN');
+    if (token.trim().isEmpty) return;
+
     ZapBugsController.init(
       contextProvider: () => _navigatorKey.currentContext,
       service: GitHubFeedbackService(
         GitHubFeedbackConfig(
-          token: const String.fromEnvironment('GITHUB_FEEDBACK_TOKEN'),
+          token: token,
           owner: 'my-org',   // GitHub user or organisation
           repo: 'my-app',    // repository name
         ),
@@ -109,18 +112,23 @@ void main() {
 }
 ```
 
-### Step 4 — Dispose when the app exits
+### Step 4 — Dispose in your app lifecycle (`State.dispose`)
 
 ```dart
-AppLifecycleListener(
-  onExitRequested: () async {
-    ZapBugsController.dispose();
-    return AppExitResponse.exit;
-  },
-);
+@override
+void dispose() {
+  ZapBugsController.dispose();
+  super.dispose();
+}
 ```
 
-That's it — shake the device and a GitHub issue will be created automatically.
+That's it — shake the device, fill in the feedback form, and submit. An issue should be created in the configured GitHub repository with the feedback details and a screenshot attached.
+
+### Production-safety checklist
+
+- Do not pass `SHAKE_FEEDBACK_ENABLED=true` in production builds.
+- Do not inject `GITHUB_FEEDBACK_TOKEN` in production CI/CD jobs.
+- Use separate CI workflows (non-prod vs prod) so secrets cannot leak between lanes.
 
 ---
 
@@ -138,17 +146,17 @@ That's it — shake the device and a GitHub issue will be created automatically.
 
 ## `ZapBugsController.init` reference
 
-| Parameter               | Type                       | Default      | Description                                                           |
-| ----------------------- | -------------------------- | ------------ | --------------------------------------------------------------------- |
-| `contextProvider`       | `BuildContext? Function()` | required     | Returns the current context — typically `navigatorKey.currentContext` |
-| `onSubmit`              | `OnFeedbackSubmit?`        | `null`       | Raw submit callback; takes precedence over `service`                  |
-| `service`               | `FeedbackService?`         | `null`       | Any `FeedbackService` implementation                                  |
-| `strings`               | `ZapBugsStrings?`          | `null`       | Static copy override; falls back to built-in defaults when omitted    |
-| `stringsBuilder`        | `ZapBugsStrings Function(BuildContext)?` | `null` | Lazy, context-aware strings (best for `AppLocalizations`); takes precedence over `strings` |
-| `minimumShakeCount`     | `int`                      | `1`          | Number of shakes required to trigger                                  |
-| `shakeSlopTimeMS`       | `int`                      | `500`        | Minimum ms between shakes                                             |
-| `shakeCountResetTime`   | `int`                      | `3000`       | ms after which the shake count resets                                 |
-| `shakeThresholdGravity` | `double`                   | `2.7`        | Sensitivity — lower values trigger more easily                        |
+| Parameter               | Type                                     | Default  | Description                                                                                |
+| ----------------------- | ---------------------------------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `contextProvider`       | `BuildContext? Function()`               | required | Returns the current context — typically `navigatorKey.currentContext`                      |
+| `onSubmit`              | `OnFeedbackSubmit?`                      | `null`   | Raw submit callback; takes precedence over `service`                                       |
+| `service`               | `FeedbackService?`                       | `null`   | Any `FeedbackService` implementation                                                       |
+| `strings`               | `ZapBugsStrings?`                        | `null`   | Static copy override; falls back to built-in defaults when omitted                         |
+| `stringsBuilder`        | `ZapBugsStrings Function(BuildContext)?` | `null`   | Lazy, context-aware strings (best for `AppLocalizations`); takes precedence over `strings` |
+| `minimumShakeCount`     | `int`                                    | `1`      | Number of shakes required to trigger                                                       |
+| `shakeSlopTimeMS`       | `int`                                    | `500`    | Minimum ms between shakes                                                                  |
+| `shakeCountResetTime`   | `int`                                    | `3000`   | ms after which the shake count resets                                                      |
+| `shakeThresholdGravity` | `double`                                 | `2.7`    | Sensitivity — lower values trigger more easily                                             |
 
 ---
 
@@ -242,12 +250,25 @@ const ZapBugsStrings(
 
 ---
 
+## Screenshot privacy
+
+Screenshots automatically exclude sensitive system UI thanks to the `RepaintBoundary` architecture:
+
+- **Status bar** — not captured (outside the app widget tree)
+- **Notifications** — not captured (OS layer, not Flutter)
+- **Keyboard** — not captured (system overlay)
+- **Notification shade** — not captured (system layer)
+
+Only your app's widget tree (inside the `RepaintBoundary`) is rendered to the screenshot. OS overlays and system UI exist at a different rendering layer and are never included. This is privacy-by-architecture — the tool simply doesn't have access to native system elements in the first place.
+
+---
+
 ## Troubleshooting
 
 ### Shake is not detected
 
 - Ensure `ZapBugsController.init(...)` is called.
-- Confirm the feature flag is enabled (`SHAKE_FEEDBACK_ENABLED=true`) in test/beta builds.
+- Confirm `SHAKE_FEEDBACK_ENABLED=true` is set for your non-production build.
 - Try lowering `shakeThresholdGravity` if trigger sensitivity is too strict.
 
 ### Dialog never appears
@@ -264,6 +285,7 @@ const ZapBugsStrings(
 
 - Validate PAT permissions (`Contents: Read and write`, `Issues: Read and write`).
 - Ensure token, owner, and repo values are correct and token is not expired/revoked.
+- Verify the token is only present in non-production environments.
 
 ---
 

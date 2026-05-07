@@ -1,3 +1,8 @@
+## 0.1.1
+
+- Fix GitHub screenshot links to avoid expiring tokenized URLs (`download_url`) that could later return 404.
+- Generate stable screenshot links using repository `blob/HEAD/...?...raw=true` URLs.
+
 ## 0.1.0
 
 - Initial release.
